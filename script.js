@@ -12,6 +12,7 @@ const mapBox = document.getElementById('map');
 class Workout {
 	date = new Date();
 	id = (Date.now() + '').slice(-10);
+	clicks = 0;
 
 	constructor(coords, distance, duration) {
 		this.coords = coords;
@@ -39,6 +40,9 @@ class Workout {
 			months[this.date.getMonth()]
 		} ${this.date.getDate()}`;
 		console.log(this.description);
+	}
+	click() {
+		this.click++;
 	}
 }
 
@@ -87,6 +91,8 @@ class App {
 	constructor() {
 		this._getPosition();
 
+		this._getLocalStorage();
+
 		//////////////////////////////-- submit listener --/////////////////////////////////////////////////
 		form.addEventListener('submit', this._newWorkout.bind(this));
 
@@ -124,6 +130,11 @@ class App {
 		}).addTo(this.#map);
 		L.marker(coords).addTo(this.#map).bindPopup('Current Location').openPopup();
 		this.#map.on('click', this._showForm.bind(this));
+
+		this.#workouts.forEach((work) => {
+			// this._renderWorkout(work);
+			this.renderWorkoutMarker(work);
+		});
 	}
 
 	_showForm(mapE) {
@@ -203,9 +214,16 @@ class App {
 
 		console.log(this.#mapEvent);
 
+		//render workout on map as marker
 		this.renderWorkoutMarker(workout);
+		//render workout on list
 		this._renderWorkout(workout);
+
+		//rhide form
 		this._hideForm(workout);
+
+		//sel local storage to all workouts
+		this._setLocalStorage();
 	}
 
 	//add marker on that location
@@ -289,6 +307,25 @@ class App {
 		console.log(workout);
 		console.log(workout.coords);
 		L.marker(workout.coords);
+		// workout.click();
+	}
+
+	_setLocalStorage() {
+		localStorage.setItem('workouts', JSON.stringify(this.#workouts));
+	}
+
+	_getLocalStorage() {
+		const data = JSON.parse(localStorage.getItem('workouts'));
+		console.log(data);
+
+		if (!data) return;
+
+		this.#workouts = data;
+
+		this.#workouts.forEach((work) => {
+			this._renderWorkout(work);
+			// this._renderWorkoutMarker(work);
+		});
 	}
 }
 
